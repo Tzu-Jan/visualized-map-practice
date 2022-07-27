@@ -119,7 +119,7 @@ function Update(){
 
 // get the JSON file 
 function getGeoJson(){
-  fetch("./JSON/SGDowntown.geojson").then((res)=>{
+  fetch("./SGDowntown.geojson").then((res)=>{
     res.json().then((data)=>{
       loadBuilding(data)
     })
