@@ -1,23 +1,41 @@
 // Data complied from OpenStreetMap: https://www.openstreetmap.org/
 // Based on the tutorial from: https://youtu.be/L-YF5mZm4rs 
 
+import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/lil-gui.module.min.js';
 import * as THREE from 'three';
 import { OrbitControls ,MapControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
 import { BufferGeometryUtils } from 'https://cdn.jsdelivr.net/npm/three@0.117.1/examples/jsm/utils/BufferGeometryUtils.js';
-//import { getDistance, getRhumbLineBearing } from 'https://unpkg.com/geolib@2.0.24/dist/geolib.js';
+//import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
 
 // basic items 
 let scene, renderer, camera, controls;
-let axesHelper;
+//let axesHelper;
 let raycaster;
 let pointer;
 let container;
+let gui = new GUI();
 //let selectedObject=null;
 
 // map center
 const center = [103.847,1.283];
+const layers = {
 
+  'Toggle Name': function () {
+
+    camera.layers.toggle( 1 );
+
+  },
+  'Toggle Mass': function () {
+
+    camera.layers.toggle( 0 );
+
+  },
+  'Buidling Name': function(){
+    
+  }
+
+}
 // building material
 let Material_Building = new THREE.MeshPhongMaterial();
 // debug
@@ -28,9 +46,9 @@ let geo_buildings = [];
 
 // bounding box
 let collider_building = [];
-var iR;
-var iR_Road;
-var iR_Line;
+let iR;
+let iR_Road;
+let iR_Line;
 
 //initial the scene, renderer, camera
 function initial() {
@@ -63,6 +81,9 @@ function initial() {
   camera.position.y =4;
   camera.position.x =8;
   camera.lookAt(scene.position);
+  camera.layers.enableAll();
+	//camera.layers.toggle( 1 );
+
 
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2();
@@ -91,30 +112,13 @@ function initial() {
   scene.add(light1)
   scene.add(light2)
 
-    /*
-  const geometry = new THREE.BoxGeometry(60, 0.1, 40); // Geometry
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xffff90
-  }); // material
-  let ground = new THREE.Mesh(geometry, material); // mesh
-  ground.position.set(6, -0.5, 2.5);
-  scene.add(ground);
-
-  const boxG = new THREE.BoxGeometry(1, 1, 1);
-  const boxM = new THREE.MeshBasicMaterial({
-    color: 0xffffee
-  });
-  const box = new THREE.Mesh(boxG,boxM);
-  box.position.set(0, 0.5, 5);
-  scene.add(box);
-*/
   // axeshelper and gridhelper are helpful while coding
   // I turned them off in the end
-  axesHelper = new THREE.AxesHelper(1000);
+  /*axesHelper = new THREE.AxesHelper(1000);
   scene.add(axesHelper);
   let gh = new THREE.GridHelper(100, 160, new THREE.Color( 0x555555), new THREE.Color(0x222222))
   scene.add(gh)
-
+*/
 
   window.addEventListener('resize', onWindowResize, false)
   onWindowResize();
@@ -129,7 +133,7 @@ function initial() {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(4.5, 0, 4.5);
   controls.enablePan = true;
-  //controls.maxPolarAngle = Math.PI / 2;
+  controls.maxPolarAngle = Math.PI / 2;
   controls.enableDamping = true;
   controls.dampingFactor = 0.5;
   controls.screenSpacePanning = false;
@@ -147,18 +151,16 @@ function initial() {
 
 // on click move
 function onClickMove(event){
-  /*
-  if(selectedObject){
-    selectedObject.material.color.set( '#69f' );
-		selectedObject = null;
-  }*/
   
   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
   let selected = lockOnTarget(pointer);
   if(selected["info"]["name"]!=undefined){
-  console.log(selected["info"]["name"]);}
+  console.log(selected["info"]["name"]);
+  
+
+}
   else{
     console.log("No data");
   }
@@ -333,23 +335,33 @@ function GPSrelativePosition(objPos, centerPos)
 {
   // Since I could not find a way to import geolib, so made a bit change here
   // GPS distance
-  //let distance = window.geolib.getDistance(objPos, centerPos);
+  // let distance = window.geolib.getDistance(objPos, centerPos);
   // bearing angle
-  //let bearing = window.geolib.getRhumbLineBearing(objPos, centerPos);
+  // let bearing = window.geolib.getRhumbLineBearing(objPos, centerPos);
 
   // Calculate x
   let x = objPos[0]-centerPos[0];
-  //let x =objPos[0]+(distance*Math.cos(bearing*Math.PI / 180));
+  // let x =objPos[0]+(distance*Math.cos(bearing*Math.PI / 180));
 
   // Calculate y
   let y = objPos[1]-centerPos[1];//
-  //let y = objPos[1]+(distance*Math.sin(bearing*Math.PI / 180));
+  // let y = objPos[1]+(distance*Math.sin(bearing*Math.PI / 180));
   //console.log(x,y), *1000 to make it's wide-length ratio reseanable ;
   return [-x*1000, y*1000];
   
 }
 
+function initGui() {
+
+  gui.add( layers, 'Toggle Name' );
+  gui.add( layers, 'Toggle Mass' );
+
+
+}
+
+
 initial();
 render();
 getGeoJson();
+initGui();
 
